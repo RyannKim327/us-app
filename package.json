@@ -1,20 +1,18 @@
 {
- "name": "chat-app",
- "version": "0.0.1",
- "description": "A simple web based chatting app idea",
- "main": "index.js",
- "scripts": {
-  "test": "node index"
- },
- "keywords": [
-  "chat-app"
- ],
- "author": "RyannKim327",
- "license": "ISC",
- "dependencies": {
-  "body-parser": "^1.20.1",
-  "express": "^4.18.2",
-  "fs": "^0.0.1-security",
-  "youtubei.js": "^10.5.0"
- }
+  "name": "us-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "nuxt": "npm:nuxt-nightly@5x",
+    "vue": "^3.5.35",
+    "vue-router": "^5.1.0"
+  }
 }
