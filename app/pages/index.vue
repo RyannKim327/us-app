@@ -1,3 +1,7 @@
+<script setup>
+
+</script>
+
 <template>
   <main class="flex h-full flex-col items-center justify-center px-4 py-12 overflow-y-auto">
     <!-- Card Container -->
@@ -74,16 +78,3 @@
   </main>
 </template>
 
-<script setup>
-import { useChat } from '~/composables/useChat'
-
-const { currentUser, logout, initializeState } = useChat()
-
-onMounted(() => {
-  initializeState()
-})
-
-const handleLogout = () => {
-  logout()
-}
-</script>

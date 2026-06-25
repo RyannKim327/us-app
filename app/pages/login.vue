@@ -1,3 +1,7 @@
+<script setup>
+
+</script>
+
 <template>
   <main class="flex h-full flex-col items-center px-4 py-12 overflow-y-auto">
     <div class="w-full max-w-md space-y-6">
@@ -130,47 +134,3 @@
   </main>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useChat } from '~/composables/useChat'
-
-const { currentUser, login, initializeState } = useChat()
-const router = useRouter()
-
-const form = reactive({
-  email: '',
-  password: 'password123' // default password for mock purposes
-})
-
-const isLoading = ref(false)
-const errorMsg = ref('')
-
-onMounted(() => {
-  initializeState()
-  if (currentUser.value) {
-    navigateTo('/chat')
-  }
-})
-
-const quickFill = (email) => {
-  form.email = email
-  form.password = 'password123'
-}
-
-const handleLogin = async () => {
-  isLoading.value = true
-  errorMsg.value = ''
-  
-  // Artificial delay for realism
-  await new Promise(resolve => setTimeout(resolve, 800))
-  
-  const result = login(form.email, form.password)
-  isLoading.value = false
-  
-  if (result.success) {
-    navigateTo('/chat')
-  } else {
-    errorMsg.value = result.error || 'Failed to login'
-  }
-}
-</script>

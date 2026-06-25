@@ -1,3 +1,48 @@
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { useRegister } from '~/composables/useRegister'
+
+const avatars = ['🦊', '🐱', '🐼', '🐨', '🦄', '🦁', '👩‍💻', '👨‍💻', '🕶️', '🍿', '🚀', '🎨']
+const selectedAvatar = ref('🦊')
+
+const form = reactive({
+  username: '',
+  email: '',
+  password: ''
+})
+
+const isLoading = ref(false)
+const errorMsg = ref('')
+
+const handleRegister = async () => {
+  // Simple checks
+  if (form.username.trim().length < 3) {
+    errorMsg.value = 'Username must be at least 3 characters.'
+    return
+  }
+  
+  if (form.password.length < 6) {
+    errorMsg.value = 'Password must be at least 6 characters.'
+    return
+  }
+
+  isLoading.value = true
+  errorMsg.value = ''
+
+  // Artificial delay for realism
+  await new Promise(resolve => setTimeout(resolve, 800))
+
+  const result = await useRegister(form.username, form.password, selectedAvatar.value)
+  isLoading.value = false
+
+  if (result.success) {
+    navigateTo('/chat')
+  } else {
+    errorMsg.value = result.error || 'Failed to register'
+  }
+}
+</script>
+
 <template>
   <main class="flex h-full flex-col items-center px-4 py-8 overflow-y-auto">
     <div class="w-full max-w-md space-y-6">
@@ -66,26 +111,6 @@
             </div>
           </div>
 
-          <!-- Email Input -->
-          <div>
-            <label for="email" class="block text-xs font-semibold text-white/80 mb-1.5">Email Address</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/40">
-                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                </svg>
-              </span>
-              <input
-                id="email"
-                v-model="form.email"
-                type="email"
-                required
-                placeholder="john@example.com"
-                class="w-full rounded-2xl border border-white/10 bg-slate-950/40 py-3 pl-10 pr-4 text-sm text-white placeholder-white/20 outline-none transition focus:border-cyan-400/50 focus:bg-slate-950/60"
-              />
-            </div>
-          </div>
-
           <!-- Password Input -->
           <div>
             <label for="password" class="block text-xs font-semibold text-white/80 mb-1.5">Password</label>
@@ -134,59 +159,3 @@
   </main>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useChat } from '~/composables/useChat'
-
-const { currentUser, register, initializeState } = useChat()
-
-const avatars = ['🦊', '🐱', '🐼', '🐨', '🦄', '🦁', '👩‍💻', '👨‍💻', '🕶️', '🍿', '🚀', '🎨']
-const selectedAvatar = ref('🦊')
-
-const form = reactive({
-  username: '',
-  email: '',
-  password: ''
-})
-
-const isLoading = ref(false)
-const errorMsg = ref('')
-
-onMounted(() => {
-  initializeState()
-  if (currentUser.value) {
-    navigateTo('/chat')
-  }
-})
-
-const handleRegister = async () => {
-  // Simple checks
-  if (form.username.trim().length < 3) {
-    errorMsg.value = 'Username must be at least 3 characters.'
-    return
-  }
-  if (!form.email.includes('@')) {
-    errorMsg.value = 'Please enter a valid email address.'
-    return
-  }
-  if (form.password.length < 6) {
-    errorMsg.value = 'Password must be at least 6 characters.'
-    return
-  }
-
-  isLoading.value = true
-  errorMsg.value = ''
-
-  // Artificial delay for realism
-  await new Promise(resolve => setTimeout(resolve, 800))
-
-  const result = register(form.username, form.email, selectedAvatar.value)
-  isLoading.value = false
-
-  if (result.success) {
-    navigateTo('/chat')
-  } else {
-    errorMsg.value = result.error || 'Failed to register'
-  }
-}
-</script>
