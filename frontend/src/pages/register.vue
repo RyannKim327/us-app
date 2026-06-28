@@ -1,12 +1,8 @@
 <script setup lang="ts">
-  import { ref } from "vue";
+  import axios from "axios"
+  import { onMounted, ref } from "vue";
 
-  const avatars = [
-    "😀", "😎", "🤖", "👻", "🐱",
-    "🐶", "🦊", "🐼", "🐸", "🐧",
-    "🦁", "🐙", "🦄", "🐲", "🍀",
-    "⭐",
-  ];
+  const avatars = ref([]);
 
   const selectedAvatar = ref(avatars[0]);
 
@@ -22,6 +18,12 @@
       verifyPassword: verifyPassword.value,
     });
   }
+
+  onMounted(async () => {
+    const { data } = await axios.get("http://localhost:3000/avatars")
+    avatars.value = data
+  })
+
 </script>
 
 <template>
