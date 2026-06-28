@@ -28,7 +28,9 @@ await app.register(websocket)
 
 app.get("/", index)
 
-app.get('/ws', { websocket: true }, SocketControl)
+app.get('/ws', { websocket: true }, (socket: WebSocket) => {
+  SocketControl(socket, db)
+})
 
 await app.listen({ port: PORT }, (err, addr) => {
   if (err) {
