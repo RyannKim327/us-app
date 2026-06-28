@@ -1,90 +1,82 @@
-<script setup lang="ts">
-import { onMounted } from 'vue'
-import { useChat } from '../composables/useChat'
-
-const { currentUser, logout, initializeState } = useChat()
-
-onMounted(() => {
-  initializeState()
-})
-
-const handleLogout = () => {
-  logout()
-}
-</script>
-
 <template>
-  <main class="flex h-full flex-col items-center justify-center px-4 py-12 overflow-y-auto">
-    <!-- Card Container -->
-    <div class="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-2xl backdrop-blur-xl flex flex-col items-center text-center">
-      
+  <div class="flex flex-col h-full w-full items-center overflow-y-auto p-6 scrollbar-none">
+    <div class="flex max-w-4xl flex-col items-center text-center">
+
       <!-- Logo -->
       <div
-        class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-4xl shadow-lg shadow-blue-500/20 animate-bounce"
-      >   💬
+        class="mb-8 flex h-24 w-24 items-center justify-center rounded-3xl border border-slate-700 bg-slate-900/70 backdrop-blur shadow-xl"
+      >
+        <span class="text-4xl font-black text-cyan-400">U</span>
       </div>
 
-      <!-- App Name -->
-      <h1 class="text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
-        UsApp
+      <!-- Heading -->
+      <h1
+        class="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-7xl font-extrabold tracking-tight text-transparent"
+      >
+        Us-APP
       </h1>
 
       <!-- Tagline -->
-      <h2 class="mt-3 text-2xl font-bold text-white">
-        Usap Tayo,
-        <span class="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">Dito.</span>
+      <h2 class="mt-6 text-3xl font-semibold text-white">
+        Join conversations that matter.
       </h2>
 
       <!-- Description -->
-      <p class="mt-4 text-sm text-white/70 leading-relaxed max-w-sm">
-        Connect with friends and communities through conversations that matter. Select an option below to get started.
+      <p class="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+        Us-APP is an anonymous community platform where people gather in
+        discussion rooms based on their interests, profession, course, or
+        field of expertise. Share ideas, ask questions, help others, and
+        participate in meaningful conversations without revealing your
+        identity.
       </p>
 
-      <!-- Buttons Section -->
-      <div class="mt-8 flex w-full flex-col gap-3">
-        <template v-if="currentUser">
-          <!-- User status preview -->
-          <div class="mb-2 p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3 text-left w-full">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-2xl border border-cyan-500/30">
-              {{ currentUser.avatar }}
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-xs font-semibold text-white/90">Signed in as</p>
-              <p class="truncate text-sm font-bold text-cyan-300">{{ currentUser.username }}</p>
-            </div>
-          </div>
+      <!-- Buttons -->
+      <div class="mt-12 flex flex-col gap-4 sm:flex-row">
+        <RouterLink
+          to="/login"
+          class="rounded-xl bg-cyan-500 px-10 py-3 text-lg font-semibold transition hover:bg-cyan-400 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-95"
+        >
+          Login
+        </RouterLink>
 
-          <RouterLink
-            to="/chat"
-            class="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 py-3.5 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:scale-[1.02] active:scale-95 text-center"
-          >
-            Open Chat Room
-          </RouterLink>
-          <button
-            @click="handleLogout"
-            class="w-full rounded-2xl border border-white/10 py-3.5 font-semibold text-white/90 transition hover:bg-white/5 text-center"
-          >
-            Sign Out
-          </button>
-        </template>
-        <template v-else>
-          <RouterLink
-            to="/login"
-            class="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 py-3.5 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:scale-[1.02] active:scale-95 text-center"
-          >
-            Log In
-          </RouterLink>
+        <RouterLink
+          to="/register"
+          class="rounded-xl border border-slate-700 bg-slate-900/60 px-10 py-3 text-lg font-semibold transition hover:border-cyan-500 hover:bg-slate-800 active:scale-95"
+        >
+          Register
+        </RouterLink>
+      </div>
 
-          <RouterLink
-            to="/register"
-            class="w-full rounded-2xl border border-white/10 py-3.5 font-semibold text-white/90 transition hover:bg-white/5 text-center block"
-          >
-            Create an Account
-          </RouterLink>
-        </template>
+      <!-- Features -->
+      <div
+        class="mt-20 grid w-full max-w-5xl gap-5 md:grid-cols-3"
+      >
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+          <div class="mb-3 text-3xl">💬</div>
+          <h3 class="font-semibold text-lg">Discussion Rooms</h3>
+          <p class="mt-2 text-sm text-slate-400">
+            Join communities focused on topics that interest you.
+          </p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+          <div class="mb-3 text-3xl">🎭</div>
+          <h3 class="font-semibold text-lg">Stay Anonymous</h3>
+          <p class="mt-2 text-sm text-slate-400">
+            Share opinions and ask questions without exposing your identity.
+          </p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+          <div class="mb-3 text-3xl">🤝</div>
+          <h3 class="font-semibold text-lg">Learn Together</h3>
+          <p class="mt-2 text-sm text-slate-400">
+            Connect with students, professionals, and communities through
+            collaborative discussions.
+          </p>
+        </div>
       </div>
 
     </div>
-  </main>
+  </div>
 </template>
-

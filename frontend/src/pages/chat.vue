@@ -1,575 +1,101 @@
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick } from 'vue'
+import { computed, ref } from "vue";
 
-/* --------------------------
- * Sidebar
- * -------------------------- */
-const isMobileSidebarOpen = ref(false)
-const searchQuery = ref('')
+import Sidebar from "../components/Sidebar.vue";
+import ChatHeader from "../components/ChatHeader.vue";
+import ChatBody from "../components/ChatBody.vue";
+import ChatInput from "../components/ChatInput.vue";
+import GroupInfoModal from "../components/GroupInfoModal.vue";
 
-/* --------------------------
- * Chat Input
- * -------------------------- */
-const messageInput = ref('')
-const chatInput = ref<HTMLInputElement | null>(null)
-const messageContainer = ref<HTMLElement | null>(null)
+import groups from "../data/groups";
+import users from "../data/users";
+import messages from "../data/messages";
+import reports from "../data/reports";
 
-/* --------------------------
- * Emoji Picker
- * -------------------------- */
-const showEmojiPicker = ref(false)
+const selectedGroup = ref(1);
+const infoOpen = ref(false);
 
-const quickEmojis = [
-  '😀', '😂', '🤣', '😍', '🥰', '😎',
-  '😭', '😡', '👍', '👎', '👏', '🙏',
-  '🔥', '🎉', '❤️', '💙', '💚', '💛',
-  '🤔', '😅', '🤝', '💯', '✨', '🚀'
-]
+// Demo current user
+const currentUser = users[0];
 
-/* --------------------------
- * Current User
- * -------------------------- */
-const currentUser = ref({
-  id: 1,
-  username: 'Kimmy',
-  email: 'kimmy@example.com',
-  avatar: '👨‍💻'
-})
+const currentGroup = computed(() =>
+  groups.find(g => g.id === selectedGroup.value)!
+);
 
-/* --------------------------
- * Online Users
- * -------------------------- */
-const onlineUsers = ref([
-  {
-    id: 2,
-    username: 'Alice',
-    avatar: '👩',
-    status: 'online',
-    statusText: 'Working'
-  },
-  {
-    id: 3,
-    username: 'Bob',
-    avatar: '🧑',
-    status: 'away',
-    statusText: 'Away'
-  }
-])
+const groupMessages = computed(() =>
+  messages.filter(m => m.groupId === selectedGroup.value)
+);
 
-/* --------------------------
- * Channels
- * -------------------------- */
-const channels = ref([
-  {
-    id: 1,
-    name: 'Global Chat',
-    description: 'Everyone is here.',
-    type: 'global',
-    memberCount: 15
-  }
-])
-
-const activeChannelId = ref(1)
-
-const filteredChannels = computed(() => {
-  if (!searchQuery.value.trim()) return channels.value
-
-  return channels.value.filter(channel =>
-    channel.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+const groupReports = computed(() =>
+  reports.filter(r =>
+    groupMessages.value.some(m => m.id === r.messageId)
   )
-})
+);
 
-const activeChannel = computed(() =>
-  channels.value.find(c => c.id === activeChannelId.value)
-)
-
-/* --------------------------
- * Messages
- * -------------------------- */
-const messages = ref([
-  {
-    id: 1,
-    channelId: 1,
-    senderId: 2,
-    senderName: 'Alice',
-    senderAvatar: '👩',
-    content: 'Welcome to UsApp!',
-    timestamp: new Date(),
-    isSystem: false
-  }
-])
-
-const activeChannelMessages = computed(() =>
-  messages.value.filter(
-    message => message.channelId === activeChannelId.value
-  )
-)
-
-/* --------------------------
- * Create Group Modal
- * -------------------------- */
-const isCreateGroupModalOpen = ref(false)
-
-const groupForm = reactive({
-  name: '',
-  description: ''
-})
-
-/* --------------------------
- * Methods
- * -------------------------- */
-function selectChannel(id: number) {
-  activeChannelId.value = id
+function send(message: string) {
+  console.log(message);
 }
 
-function openCreateGroupModal() {
-  isCreateGroupModalOpen.value = true
+function reply(id: number) {
+  console.log("reply", id);
 }
 
-function closeCreateGroupModal() {
-  isCreateGroupModalOpen.value = false
-
-  groupForm.name = ''
-  groupForm.description = ''
+function report(id: number) {
+  console.log("report", id);
 }
 
-function handleCreateGroup() {
-  channels.value.push({
-    id: Date.now(),
-    name: groupForm.name,
-    description: groupForm.description,
-    type: 'group',
-    memberCount: 1
-  })
-
-  closeCreateGroupModal()
+function react(payload: any) {
+  console.log(payload);
 }
+</script>
 
-function handleSend() {
-  if (!messageInput.value.trim()) return
+<template>
+  <div class="flex h-full">
 
-  messages.value.push({
-    id: Date.now(),
-    channelId: activeChannelId.value,
-    senderId: currentUser.value.id,
-    senderName: currentUser.value.username,
-    senderAvatar: currentUser.value.avatar,
-    content: messageInput.value,
-    timestamp: new Date(),
-    isSystem: false
-  })
+    <Sidebar
+      :groups="groups"
+      :users="users"
+      :selected-group-id="selectedGroup"
+      @select-group="selectedGroup = $event"
+      @create-group="console.log('create')"
+    />
 
-  messageInput.value = ''
+    <main class="flex flex-1 flex-col">
 
-  nextTick(() => {
-    messageContainer.value?.scrollTo({
-      top: messageContainer.value.scrollHeight,
-      behavior: 'smooth'
-    })
-  })
-}
+      <ChatHeader
+        :group="currentGroup"
+        @info="infoOpen = true"
+      />
 
-function insertEmoji(emoji: string) {
-  messageInput.value += emoji
-}
+      <div class="min-h-0 flex-1 overflow-hidden">
 
-function triggerMockAttach() {
-  alert('File attachment is not implemented.')
-}
+        <ChatBody
+          :messages="groupMessages"
+          :users="users"
+          @reply="reply"
+          @report="report"
+          @react="react"
+        />
 
-function handleLogout() {
-  alert('Logout')
-}
-
-function formatTime(date: Date) {
-  return new Date(date).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-</script><template>
-  <div class="h-dvh w-dvw flex overflow-hidden bg-slate-950 text-white relative">
-    <!-- Mobile Sidebar Backdrop -->
-    <div
-      v-if="isMobileSidebarOpen"
-      @click="isMobileSidebarOpen = false"
-      class="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm md:hidden"
-    ></div>
-
-    <!-- Sidebar -->
-    <aside
-      class="fixed inset-y-0 left-0 z-30 flex w-72 shrink-0 flex-col border-r border-white/10 bg-slate-900/80 backdrop-blur-xl transition-transform duration-300 md:static md:translate-x-0"
-      :class="isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-    >
-      <!-- Sidebar Header -->
-      <div class="flex h-16 items-center justify-between border-b border-white/10 px-6">
-        <NuxtLink to="/" class="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 text-base">💬</span>
-          <span>UsApp</span>
-        </NuxtLink>
-        <button
-          @click="isMobileSidebarOpen = false"
-          class="rounded-lg p-1.5 hover:bg-white/10 md:hidden"
-        >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </div>
 
-      <!-- Search channels -->
-      <div class="px-4 py-3">
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search channels..."
-            class="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-4 text-xs text-white placeholder-white/30 outline-none transition focus:border-white/20 focus:bg-white/10"
-          />
-        </div>
+      <div class="border-t border-slate-800 p-5">
+
+        <ChatInput
+          @send="send"
+        />
+
       </div>
 
-      <!-- Scrollable lists -->
-      <div class="flex-1 overflow-y-auto px-3 py-2 space-y-6">
-        <!-- Channels list -->
-        <div>
-          <div class="flex items-center justify-between px-3 mb-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-white/40">Channels & Groups</span>
-            <button
-              @click="openCreateGroupModal"
-              class="rounded p-1 hover:bg-white/10 text-cyan-400 transition hover:scale-105"
-              title="Create new group"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-          </div>
-
-          <div class="space-y-1">
-            <button
-              v-for="chan in filteredChannels"
-              :key="chan.id"
-              @click="selectChannel(chan.id)"
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm transition"
-              :class="activeChannelId === chan.id ? 'bg-gradient-to-r from-blue-600/40 to-cyan-500/20 border-l-4 border-cyan-400 text-white font-medium shadow-inner' : 'hover:bg-white/5 text-white/70 hover:text-white'"
-            >
-              <span class="text-lg shrink-0">
-                {{ chan.type === 'global' ? '🌐' : '👥' }}
-              </span>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm">{{ chan.name }}</p>
-                <p class="truncate text-[10px] text-white/40" v-if="chan.description">
-                  {{ chan.description }}
-                </p>
-              </div>
-              <span
-                v-if="chan.memberCount"
-                class="text-[10px] bg-white/10 text-white/60 px-1.5 py-0.5 rounded-full"
-              >
-                {{ chan.memberCount }}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Online Users list -->
-        <div>
-          <div class="flex items-center justify-between px-3 mb-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-white/40">Online users ({{ onlineUsers.length + 1 }})</span>
-          </div>
-
-          <div class="space-y-2">
-            <!-- Current user item -->
-            <div class="flex items-center gap-3 px-3 py-1.5" v-if="currentUser">
-              <div class="relative shrink-0">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/20 text-xl border border-cyan-500/30">
-                  {{ currentUser.avatar }}
-                </div>
-                <span class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-slate-900"></span>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-xs font-semibold text-white">{{ currentUser.username }} <span class="text-[9px] text-cyan-300 bg-cyan-950 px-1 rounded">You</span></p>
-                <p class="truncate text-[10px] text-white/50">Online</p>
-              </div>
-            </div>
-
-            <!-- Other online users -->
-            <div
-              v-for="user in onlineUsers"
-              :key="user.id"
-              class="flex items-center gap-3 px-3 py-1.5 hover:bg-white/5 rounded-lg transition"
-            >
-              <div class="relative shrink-0">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xl border border-white/5">
-                  {{ user.avatar }}
-                </div>
-                <span
-                  class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-slate-900"
-                  :class="user.status === 'online' ? 'bg-green-500' : user.status === 'away' ? 'bg-amber-500' : 'bg-slate-500'"
-                ></span>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-xs font-medium text-white/90">{{ user.username }}</p>
-                <p class="truncate text-[10px] text-white/40" v-if="user.statusText">
-                  {{ user.statusText }}
-                </p>
-                <p class="truncate text-[10px] text-white/40" v-else>
-                  {{ user.status === 'online' ? 'Online' : user.status === 'away' ? 'Away' : 'Offline' }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- User Profile Footer -->
-      <div class="mt-auto border-t border-white/10 bg-slate-950/40 p-4" v-if="currentUser">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-              {{ currentUser.avatar }}
-            </div>
-            <div class="min-w-0">
-              <p class="truncate text-sm font-bold text-white">{{ currentUser.username }}</p>
-              <p class="truncate text-[10px] text-blue-200/60">{{ currentUser.email }}</p>
-            </div>
-          </div>
-          <button
-            @click="handleLogout"
-            class="rounded-xl p-2 text-white/60 hover:bg-white/10 hover:text-red-300 transition"
-            title="Log Out"
-          >
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Chat Window -->
-    <main class="flex flex-1 flex-col h-full bg-slate-900/40 relative">
-      <!-- Top header bar -->
-      <header class="flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-slate-900/60 backdrop-blur-md px-6 z-10">
-        <div class="flex items-center gap-3 min-w-0">
-          <button
-            @click="isMobileSidebarOpen = true"
-            class="mr-2 rounded-xl p-1.5 hover:bg-white/10 md:hidden"
-          >
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          
-          <span class="text-2xl shrink-0">
-            {{ activeChannel?.type === 'global' ? '🌐' : '👥' }}
-          </span>
-          <div class="min-w-0">
-            <h1 class="truncate text-base font-bold text-white">{{ activeChannel?.name }}</h1>
-            <p class="truncate text-xs text-white/50" v-if="activeChannel?.description">
-              {{ activeChannel.description }}
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-400 border border-cyan-400/20">
-            <span class="h-2 w-2 rounded-full bg-cyan-400"></span>
-            {{ activeChannel?.memberCount || 1 }} active users
-          </span>
-        </div>
-      </header>
-
-      <!-- Message Area -->
-      <div
-        ref="messageContainer"
-        class="flex-1 overflow-y-auto px-6 py-6 space-y-4"
-      >
-        <div
-          v-for="(msg, index) in activeChannelMessages"
-          :key="msg.id"
-          class="flex flex-col"
-        >
-          <!-- System Message -->
-          <div v-if="msg.isSystem" class="my-4 mx-auto w-fit">
-            <div class="rounded-full bg-white/5 border border-white/10 px-4 py-1 text-[11px] text-white/60 backdrop-blur flex items-center gap-1.5">
-              <span>⚙️</span>
-              <span>{{ msg.content }}</span>
-            </div>
-          </div>
-
-          <!-- Normal Message -->
-          <div
-            v-else
-            class="flex gap-3 group max-w-[80%]"
-            :class="msg.senderId === currentUser?.id ? 'self-end flex-row-reverse' : 'self-start'"
-          >
-            <!-- Avatar -->
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl select-none">
-              {{ msg.senderAvatar }}
-            </div>
-
-            <!-- Content Bubble Wrapper -->
-            <div class="space-y-1" :class="msg.senderId === currentUser?.id ? 'text-right' : 'text-left'">
-              <!-- Username + Time -->
-              <div class="flex items-center gap-2 text-xs">
-                <span class="font-bold text-white/80" v-if="msg.senderId !== currentUser?.id">
-                  {{ msg.senderName }}
-                </span>
-                <span class="text-[10px] text-white/40">
-                  {{ formatTime(msg.timestamp) }}
-                </span>
-              </div>
-
-              <!-- Message Bubble -->
-              <div
-                class="rounded-2xl px-4 py-2.5 text-sm break-words whitespace-pre-wrap shadow-lg"
-                :class="msg.senderId === currentUser?.id
-                  ? 'bg-gradient-to-br from-blue-600 to-cyan-500 text-white rounded-tr-none'
-                  : 'bg-white/10 text-white border border-white/5 rounded-tl-none'"
-              >
-                {{ msg.content }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-if="activeChannelMessages.length === 0" class="h-full flex flex-col items-center justify-center text-center p-8 opacity-60">
-          <div class="text-5xl mb-4">💬</div>
-          <h3 class="text-lg font-bold">No messages here yet</h3>
-          <p class="text-xs text-white/60 max-w-xs mt-1">Be the first to start the conversation! Type a message below and hit send.</p>
-        </div>
-      </div>
-
-      <!-- Bottom Chat Bar Input -->
-      <footer class="p-4 border-t border-white/10 bg-slate-900/40 backdrop-blur-md">
-        <form @submit.prevent="handleSend" class="relative">
-          <!-- Emoji Picker Panel -->
-          <div
-            v-if="showEmojiPicker"
-            class="absolute bottom-16 left-0 z-20 w-64 rounded-2xl border border-white/15 bg-slate-900 p-3 shadow-2xl backdrop-blur"
-          >
-            <div class="flex justify-between items-center mb-2 px-1">
-              <span class="text-[10px] font-bold text-white/40 uppercase">Quick Emojis</span>
-              <button @click="showEmojiPicker = false" class="text-white/40 hover:text-white text-xs">Close</button>
-            </div>
-            <div class="grid grid-cols-6 gap-2">
-              <button
-                v-for="emoji in quickEmojis"
-                :key="emoji"
-                type="button"
-                @click="insertEmoji(emoji)"
-                class="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/15 text-lg transition"
-              >
-                {{ emoji }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Input bar wrapper -->
-          <div class="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 focus-within:border-white/20 focus-within:bg-white/10 transition">
-            <!-- Action items -->
-            <div class="flex items-center">
-              <button
-                type="button"
-                @click="showEmojiPicker = !showEmojiPicker"
-                class="rounded-xl p-2 text-white/60 hover:bg-white/10 hover:text-white transition"
-                title="Add Emoji"
-              >
-                😊
-              </button>
-              <button
-                type="button"
-                @click="triggerMockAttach"
-                class="rounded-xl p-2 text-white/60 hover:bg-white/10 hover:text-white transition"
-                title="Attach file (demo)"
-              >
-                📎
-              </button>
-            </div>
-
-            <!-- TextInput -->
-            <input
-              ref="chatInput"
-              v-model="messageInput"
-              type="text"
-              placeholder="Type your message..."
-              class="flex-1 bg-transparent border-0 outline-none px-2 py-2 text-sm text-white placeholder-white/30"
-              @keydown.esc="showEmojiPicker = false"
-            />
-
-            <!-- Send button -->
-            <button
-              type="submit"
-              :disabled="!messageInput.trim()"
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 transition hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:active:scale-100 shadow"
-            >
-              <svg class="h-5 w-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </div>
-        </form>
-      </footer>
     </main>
 
-    <!-- Create Group Channel Modal -->
-    <div
-      v-if="isCreateGroupModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
-    >
-      <div class="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900 p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
-        <h3 class="text-xl font-bold text-white mb-2">Create New Channel</h3>
-        <p class="text-xs text-white/50 mb-6">Channels are where your group members hang out. Create one for a specific topic or project.</p>
+    <GroupInfoModal
+      :open="infoOpen"
+      :group="currentGroup"
+      :reports="groupReports"
+      :is-admin="currentUser.role === 'admin'"
+      @close="infoOpen = false"
+    />
 
-        <form @submit.prevent="handleCreateGroup" class="space-y-4">
-          <div>
-            <label for="group-name" class="block text-xs font-semibold text-white/80 mb-2">Channel Name</label>
-            <input
-              id="group-name"
-              v-model="groupForm.name"
-              type="text"
-              required
-              placeholder="e.g. Design Team"
-              class="w-full rounded-2xl border border-white/10 bg-white/5 py-3 px-4 text-sm text-white placeholder-white/30 outline-none transition focus:border-white/30 focus:bg-white/10"
-            />
-          </div>
-
-          <div>
-            <label for="group-desc" class="block text-xs font-semibold text-white/80 mb-2">Description (Optional)</label>
-            <textarea
-              id="group-desc"
-              v-model="groupForm.description"
-              rows="3"
-              placeholder="What is this channel about?"
-              class="w-full rounded-2xl border border-white/10 bg-white/5 py-3 px-4 text-sm text-white placeholder-white/30 outline-none transition focus:border-white/30 focus:bg-white/10 resize-none"
-            ></textarea>
-          </div>
-
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              @click="closeCreateGroupModal"
-              class="rounded-xl border border-white/10 py-3 px-5 text-sm font-semibold transition hover:bg-white/5 text-white/80"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="rounded-xl bg-white py-3 px-5 text-sm font-bold text-blue-600 shadow transition hover:scale-105 active:scale-95"
-            >
-              Create Channel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
 </template>
