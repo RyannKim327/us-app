@@ -1,8 +1,7 @@
 import { WebSocket } from "@fastify/websocket";
-import { data_structure, json_data } from "ormyx/dist/interface";
-import { jsonParser } from "./utils;
+import { jsonParser } from "./utils";
 
-export default function SocketControl(socket: WebSocket, db: data_structure | json_data) {
+export default function SocketControl(socket: WebSocket, db: unknown) {
   socket.on("message", (msg: string) => {
     const data = jsonParser(msg)
   })
